@@ -12,6 +12,8 @@ type AmexTransaction = {
   category: string;
 };
 
+const fileName = "";
+
 pdfParser.on("pdfParser_dataError", (errData) =>
   console.error(errData.parserError)
 );
@@ -88,4 +90,4 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
   xlsx(data, settings);
 });
 
-pdfParser.loadPDF("./Aug_1_-_Aug_20_2024.pdf");
+pdfParser.loadPDF(fileName);
