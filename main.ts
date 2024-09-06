@@ -1,10 +1,10 @@
-import { Page, Text } from "pdf2json";
+import { Page } from "pdf2json";
 import xlsx from "json-as-xlsx";
 import pdfParser from "./lib/PDFParser";
 import parseSegmentFromText from "./utils/parseSegmentFromText";
 import { AMEX_ACTIVITY_STR } from "./lib/constants";
 
-type Transaction = {
+export type Transaction = {
   spender: string;
   date: string;
   desc: string;
@@ -12,7 +12,7 @@ type Transaction = {
   category: string;
 };
 
-const fileName = "statements-2024-07-14";
+const fileName = "";
 
 pdfParser.on("pdfParser_dataError", (errData) =>
   console.error(errData.parserError)
@@ -69,7 +69,7 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
 
   let data = [
     {
-      sheet: "July Spend - Amex",
+      sheet: "Monthly Spend - Amex",
       columns: [
         { label: "Spender", value: "spender" },
         { label: "Tran Date", value: "date" },
