@@ -1,8 +1,9 @@
 import { ELAN_ACTIVITY_STR } from "./lib/constants";
 import { readPdfText } from "pdf-text-reader";
-import fs from "fs";
 
-const fileName = "";
+import { Transaction } from "./main";
+
+const fileName = "statements-2024-07-14";
 
 async function main() {
   const pdfText: string = await readPdfText({
@@ -16,8 +17,8 @@ async function main() {
     seg === ELAN_ACTIVITY_STR ? indexes.push(i) : null
   );
 
-  const activityBlocks = indexes.map((index, i) => {
-    const getAllSegmentsInBlock = () => {
+  const fullActivityString = indexes
+    .map((index, i) => {
       if (i === 0) {
         return segments.slice(index, indexes[i + 1]);
       }
@@ -25,63 +26,45 @@ async function main() {
         return segments.slice(index);
       }
       return segments.slice(index, indexes[i + 1]);
-    };
-
-    return {
-      block: `New Activity block #${i + 1}`,
-      segmentsInBlock: getAllSegmentsInBlock(),
-    };
-  });
-
-  const spenders: string[] = [];
-  const transactions: string[] = [];
+    })
+    .flat();
 
   const dateRegex = /[0-9]{2}-[0-9]{2}$/;
-  activityBlocks.forEach(({ segmentsInBlock }) => {
-    // run through each list of segments and pull out two lists: spenders & transactions
-    // dont worry about cross block syncing, just get the lists for each block
-    segmentsInBlock.forEach((seg, i) => {
-      const isTransactionSegment = dateRegex.test(seg.split(" ")[0]);
-      const previousSegmentArray = segmentsInBlock[i - 1]
-        ? segmentsInBlock[i - 1].split(" ")
-        : [];
-      const nextSegmentArray = segmentsInBlock[i + 1]
-        ? segmentsInBlock[i + 1].split(" ")
-        : [];
+  const isSpenderSegment = (seg: string) =>
+    seg.includes(" CREDITS PURCHASES CASH ADV TOTAL ACTIVITY");
+  const isTransactionSegment = (seg: string) =>
+    dateRegex.test(seg.split(" ")[0]);
 
-      if (seg.includes("CREDITS PURCHASES CASH ADV TOTAL ACTIVITY")) {
-        const spender = seg.split(" ").slice(0, -6).join(" ").trim();
-        spenders.push(spender);
+  type SpenderTransactionGroup = {
+    spender: string;
+    transactions: string[];
+    spenderCounter: number;
+  };
+
+  const spenderTransactionGroups = [] as SpenderTransactionGroup[];
+  let spenderCounter = 0;
+
+  fullActivityString.forEach((seg) => {
+    if (isSpenderSegment(seg)) {
+      const spender = seg.split(" ").slice(0, -6).join(" ").trim();
+      spenderCounter++;
+
+      spenderTransactionGroups.push({
+        spender,
+        transactions: [],
+        spenderCounter,
+      });
+    }
+
+    if (isTransactionSegment(seg)) {
+      const currentGroup = spenderTransactionGroups.find(
+        (group) => group.spenderCounter === spenderCounter
+      );
+      if (currentGroup) {
+        currentGroup?.transactions.push(seg);
       }
-      if (isTransactionSegment && !dateRegex.test(previousSegmentArray[0])) {
-        transactions.push(seg + " - START OF TRANSACTIONS BLOCK");
-      }
-      if (isTransactionSegment && !dateRegex.test(nextSegmentArray[0])) {
-        transactions.push(seg + " - END OF TRANSACTIONS BLOCK");
-      }
-      if (
-        isTransactionSegment &&
-        dateRegex.test(nextSegmentArray[0]) &&
-        dateRegex.test(previousSegmentArray[0])
-      ) {
-        transactions.push(seg);
-      }
-    });
+    }
   });
-
-  // console.log(spenders.length);
-  console.log(transactions);
-
-  // fs.writeFile(
-  //   `./${fileName}.js`,
-  //   JSON.stringify(activityBlocks, null, 2),
-  //   (err) => {
-  //     if (err) {
-  //       console.error(err);
-  //       return;
-  //     }
-  //   }
-  // );
 }
 
 main();
