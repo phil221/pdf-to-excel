@@ -2,8 +2,9 @@ import { ELAN_ACTIVITY_STR } from "./lib/constants";
 import { readPdfText } from "pdf-text-reader";
 
 import { Transaction } from "./main";
+import xlsx from "json-as-xlsx";
 
-const fileName = "statements-2024-07-14";
+const fileName = "";
 
 async function main() {
   const pdfText: string = await readPdfText({
@@ -65,6 +66,58 @@ async function main() {
       }
     }
   });
+
+  type ElanTransaction = Omit<Transaction, "date"> & {
+    postDate: string;
+    tranDate: string;
+  };
+
+  const parseTransaction = (spender: string, str: string): ElanTransaction => {
+    const transArray = str.split(" ");
+    const postDate = transArray[0];
+    const tranDate = transArray[1];
+    const amount = transArray.at(-1)!;
+    const desc = transArray.slice(2, -1).join(" ");
+
+    return {
+      spender,
+      postDate,
+      tranDate,
+      desc,
+      amount,
+      category: "",
+    };
+  };
+
+  const content = spenderTransactionGroups
+    .map((group) => {
+      const transactions = group.transactions;
+      return transactions.map((t) => parseTransaction(group.spender, t));
+    })
+    .flat();
+
+  let data = [
+    {
+      sheet: "May Spend",
+      columns: [
+        { label: "Spender", value: "spender" },
+        { label: "Post Date", value: "postDate" },
+        { label: "Tran Date", value: "tranDate" },
+        { label: "Transaction Description", value: "desc" },
+        { label: "Amount", value: "amount" },
+        { label: "Accounting Classification", value: "category" },
+      ],
+      content,
+    },
+  ];
+
+  let settings = {
+    fileName: "elan_statement_summary_test",
+    writeMode: "writeFile",
+    writeOptions: {},
+  };
+
+  xlsx(data, settings);
 }
 
 main();

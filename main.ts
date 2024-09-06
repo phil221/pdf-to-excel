@@ -90,4 +90,4 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
   xlsx(data, settings);
 });
 
-pdfParser.loadPDF(fileName);
+pdfParser.loadPDF(`${fileName}.pdf`);
