@@ -4,7 +4,7 @@ import pdfParser from "./lib/PDFParser";
 import parseSegmentFromText from "./utils/parseSegmentFromText";
 import { AMEX_ACTIVITY_STR } from "./lib/constants";
 
-type AmexTransaction = {
+type Transaction = {
   spender: string;
   date: string;
   desc: string;
@@ -12,7 +12,7 @@ type AmexTransaction = {
   category: string;
 };
 
-const fileName = "";
+const fileName = "statements-2024-07-14";
 
 pdfParser.on("pdfParser_dataError", (errData) =>
   console.error(errData.parserError)
@@ -47,7 +47,7 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
     thirdTransaction,
     fourthTransaction,
     fifthTransaction,
-  ].reduce((acc: AmexTransaction[], curr) => {
+  ].reduce((acc: Transaction[], curr) => {
     // first, need to wipe the 2nd - 4th to last fields. amount is always last,
     // date is always first, and after we wipe city, phone and state the rest can just
     // count as "description" since that field varies in segment amounts
@@ -56,7 +56,7 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
     const date = curr[0];
 
     const item = {
-      spender: "James Finnegan",
+      spender: "",
       date,
       desc,
       amount,
