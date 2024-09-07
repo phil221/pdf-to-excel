@@ -102,7 +102,7 @@ const convertElan = async (fileName: string) => {
 
     let data = [
       {
-        sheet: "May Spend",
+        sheet: "Monthly Spend",
         columns: [
           { label: "Spender", value: "spender" },
           { label: "Post Date", value: "postDate" },
@@ -116,7 +116,7 @@ const convertElan = async (fileName: string) => {
     ];
 
     let settings = {
-      fileName: "elan_statement_summary_test",
+      fileName,
       writeMode: "writeFile",
       writeOptions: {},
     };
