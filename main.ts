@@ -12,7 +12,7 @@ export type Transaction = {
   category: string;
 };
 
-const fileName = "";
+const fileName = "amex-statement";
 
 pdfParser.on("pdfParser_dataError", (errData) =>
   console.error(errData.parserError)
@@ -35,22 +35,13 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
     })
     .filter((d) => d);
 
-  const firstTransaction = billingChunk.slice(0, dateIndexes[0]);
-  const secondTransaction = billingChunk.slice(dateIndexes[0], dateIndexes[1]);
-  const thirdTransaction = billingChunk.slice(dateIndexes[1], dateIndexes[2]);
-  const fourthTransaction = billingChunk.slice(dateIndexes[2], dateIndexes[3]);
-  const fifthTransaction = billingChunk.slice(dateIndexes[3]);
+  const transactions = dateIndexes.map((d, i) => {
+    if (i === 0) return billingChunk.slice(0, d);
+    if (d === dateIndexes.at(-1)!) return billingChunk.slice(d);
+    return billingChunk.slice(d, dateIndexes[i + 1]);
+  });
 
-  const content = [
-    firstTransaction,
-    secondTransaction,
-    thirdTransaction,
-    fourthTransaction,
-    fifthTransaction,
-  ].reduce((acc: Transaction[], curr) => {
-    // first, need to wipe the 2nd - 4th to last fields. amount is always last,
-    // date is always first, and after we wipe city, phone and state the rest can just
-    // count as "description" since that field varies in segment amounts
+  const content = transactions.reduce((acc: Transaction[], curr) => {
     const desc = curr.slice(1, -4).join("\n");
     const amount = curr.at(-1) ?? "N/A";
     const date = curr[0];
@@ -87,7 +78,7 @@ pdfParser.on("pdfParser_dataReady", (pdfData) => {
     writeOptions: {},
   };
 
-  xlsx(data, settings);
+  // xlsx(data, settings);
 });
 
 pdfParser.loadPDF(`${fileName}.pdf`);
