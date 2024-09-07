@@ -14,7 +14,6 @@
     "json-as-xlsx": "^2.5.6",
     "pdf-text-reader": "^5.1.0",
     "pdf2json": "^3.1.4",
-    "pdfjs-dist": "^4.6.82",
     "typescript": "^5.5.4"
   },
   "devDependencies": {
