@@ -1,84 +1,13 @@
-import { Page } from "pdf2json";
-import xlsx from "json-as-xlsx";
-import pdfParser from "./lib/PDFParser";
-import parseSegmentFromText from "./utils/parseSegmentFromText";
-import { AMEX_ACTIVITY_STR } from "./lib/constants";
+import convertAmex from "parsers/amex";
+import convertElan from "parsers/elan";
 
-export type Transaction = {
-  spender: string;
-  date: string;
-  desc: string;
-  amount: string;
-  category: string;
-};
+async function main() {
+  try {
+    convertElan("statements-2024-07-14");
+    convertAmex("amex-statement");
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-const fileName = "amex-statement";
-
-pdfParser.on("pdfParser_dataError", (errData) =>
-  console.error(errData.parserError)
-);
-pdfParser.on("pdfParser_dataReady", (pdfData) => {
-  const finder = (page: Page) =>
-    page.Texts.some((t) => decodeURIComponent(t.R[0].T) === AMEX_ACTIVITY_STR);
-  const relevantPage = pdfData.Pages.find(finder);
-  if (!relevantPage) return { error: "Could not find relevant page" };
-
-  const segments = relevantPage.Texts.map(parseSegmentFromText);
-  const amountIndex = segments.findIndex((seg) => seg.includes("Amount"));
-  const feesIndex = segments.findIndex((seg) => seg.includes("Fees"));
-  const billingChunk = segments.slice(amountIndex + 1, feesIndex);
-  const dateIndexes = billingChunk
-    .map((seg, i) => {
-      if (/\d{1,2}\/\d{1,2}\/\d{2}/.test(seg)) {
-        return i;
-      }
-    })
-    .filter((d) => d);
-
-  const transactions = dateIndexes.map((d, i) => {
-    if (i === 0) return billingChunk.slice(0, d);
-    if (d === dateIndexes.at(-1)!) return billingChunk.slice(d);
-    return billingChunk.slice(d, dateIndexes[i + 1]);
-  });
-
-  const content = transactions.reduce((acc: Transaction[], curr) => {
-    const desc = curr.slice(1, -4).join("\n");
-    const amount = curr.at(-1) ?? "N/A";
-    const date = curr[0];
-
-    const item = {
-      spender: "",
-      date,
-      desc,
-      amount,
-      category: "AI can help here",
-    };
-
-    acc.push(item);
-    return acc;
-  }, []);
-
-  let data = [
-    {
-      sheet: "Monthly Spend - Amex",
-      columns: [
-        { label: "Spender", value: "spender" },
-        { label: "Tran Date", value: "date" },
-        { label: "Transaction Description", value: "desc" },
-        { label: "Amount", value: "amount" },
-        { label: "Accounting Classification", value: "category" },
-      ],
-      content,
-    },
-  ];
-
-  let settings = {
-    fileName: "amex_statement_summary",
-    writeMode: "writeFile",
-    writeOptions: {},
-  };
-
-  // xlsx(data, settings);
-});
-
-pdfParser.loadPDF(`${fileName}.pdf`);
+main();
