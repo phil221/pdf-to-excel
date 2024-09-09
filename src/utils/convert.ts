@@ -1,4 +1,4 @@
-import { ELAN_ACTIVITY_STR } from "./lib/constants";
+import { ELAN_ACTIVITY_STR } from "../lib/constants";
 import { readPdfText } from "pdf-text-reader";
 import xlsx from "json-as-xlsx";
 import { Transaction } from "@lib/types";
@@ -109,7 +109,7 @@ async function runConversion(fileName: string) {
   ];
 
   const settings = {
-    fileName: "elan_statement_summary_test",
+    fileName,
     writeMode: "writeFile",
     writeOptions: {},
   };

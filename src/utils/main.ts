@@ -1,4 +1,4 @@
-import convert from "parsers/elan";
+import convert from "./convert";
 
 async function main(fileName: string) {
   try {
