@@ -1,12 +1,9 @@
 import { ELAN_ACTIVITY_STR } from "./lib/constants";
 import { readPdfText } from "pdf-text-reader";
-
-import { Transaction } from "./main";
 import xlsx from "json-as-xlsx";
+import { Transaction } from "@lib/types";
 
-const fileName = "";
-
-async function main() {
+async function runConversion(fileName: string) {
   const pdfText: string = await readPdfText({
     url: `./${fileName}.pdf`,
   });
@@ -119,5 +116,3 @@ async function main() {
 
   xlsx(data, settings);
 }
-
-main();
