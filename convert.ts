@@ -93,7 +93,7 @@ async function runConversion(fileName: string) {
     })
     .flat();
 
-  let data = [
+  const data = [
     {
       sheet: "May Spend",
       columns: [
@@ -108,7 +108,7 @@ async function runConversion(fileName: string) {
     },
   ];
 
-  let settings = {
+  const settings = {
     fileName: "elan_statement_summary_test",
     writeMode: "writeFile",
     writeOptions: {},
@@ -116,3 +116,5 @@ async function runConversion(fileName: string) {
 
   xlsx(data, settings);
 }
+
+export default runConversion;

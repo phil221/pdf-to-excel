@@ -7,3 +7,5 @@ async function main(fileName: string) {
     console.error(error);
   }
 }
+
+export default main;
